@@ -1,0 +1,41 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: pictotasks          # <-- jouw webapp naam in Azure
+  AZURE_WEBAPP_PACKAGE_PATH: "package.zip"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Node is handig als je ooit build-stappen wilt, maar niet verplicht hier
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Maak een deployable zip met de juiste structuur:
+      # 1) kopieer frontend/ in backend/
+      # 2) zip ALLEEN de inhoud van backend/ (dus package.json/server.js in zip-root)
+      - name: Prepare deployable package
+        run: |
+          cp -r frontend backend/
+          cd backend
+          zip -r ../${{ env.AZURE_WEBAPP_PACKAGE_PATH }} .
+
+      # Gebruik publish profile secret voor Zip Deploy naar App Service (Linux)
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
