@@ -58,6 +58,11 @@ Je kunt de webapp als **Website/iFrame** in DAKboard plaatsen.
 - Voeg in DAKboard een **Website/iFrame**-blok toe met jouw publieke URL (bijv. `https://jouwdomein.nl`).
 - Zorg dat je **eenmalig** inlogt met Google via diezelfde URL op de tablet.
 
+### Kioskmodus activeren
+- De app herkent automatisch wanneer ze in een iFrame draait (bijvoorbeeld in DAKboard) en schakelt dan de **kioskmodus** in.
+- Wil je dit lokaal testen of forceren buiten een iFrame? Voeg dan de queryparameter `?kiosk=1` toe aan de URL, bijvoorbeeld `http://localhost:5173/?kiosk=1`.
+- In kioskmodus wordt de bovenste balk verborgen en verschijnt een aangepaste melding voor inloggen.
+
 ---
 
 ## Azure Web Apps (kort)

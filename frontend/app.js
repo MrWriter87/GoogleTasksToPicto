@@ -2,6 +2,18 @@ const grid = document.getElementById('grid');
 const loginBtn = document.getElementById('loginBtn');
 const showCompleted = document.getElementById('showCompleted');
 
+const params = new URLSearchParams(window.location.search);
+const kioskParam = params.get('kiosk');
+const kioskMode =
+  kioskParam === '1' ||
+  kioskParam === 'true' ||
+  kioskParam === 'yes' ||
+  window.self !== window.top;
+
+if (kioskMode) {
+  document.body.classList.add('kiosk');
+}
+
 loginBtn.addEventListener('click', () => {
   window.location.href = '/auth/start';
 });
@@ -46,7 +58,10 @@ async function loadTasks() {
     const url = `/api/tasks?completed=true`;
     const res = await fetch(url);
     if (res.status === 401) {
-      grid.innerHTML = `<div class="empty">Niet ingelogd. Klik boven op <b>Inloggen met Google</b>.</div>`;
+      const kioskHint = document.body.classList.contains('kiosk')
+        ? 'Log in via de hoofdweergave buiten de kiosk-modus.'
+        : 'Klik boven op <b>Inloggen met Google</b>.';
+      grid.innerHTML = `<div class="empty">Niet ingelogd. ${kioskHint}</div>`;
       return;
     }
     const data = await res.json();
