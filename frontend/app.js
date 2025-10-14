@@ -2,6 +2,9 @@ const grid = document.getElementById('grid');
 const loginBtn = document.getElementById('loginBtn');
 const showCompleted = document.getElementById('showCompleted');
 
+let tasks = [];
+const pendingToggleIds = new Set();
+
 const params = new URLSearchParams(window.location.search);
 const kioskParam = params.get('kiosk');
 const kioskMode =
@@ -43,7 +46,13 @@ function parsePictoKey(task) {
 function cardTemplate(task) {
   const key = parsePictoKey(task);
   const imgSrc = `/icons/${key}.svg`
-  const cls = `card ${task.status === 'completed' ? 'completed' : ''}`;
+  const cls = [
+    'card',
+    task.status === 'completed' ? 'completed' : '',
+    pendingToggleIds.has(task.id) ? 'pending' : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
   return `
     <div class="${cls}" data-id="${task.id}">
       <img class="picto" src="${imgSrc}" alt="${key}" onerror="this.src='/icons/generiek.svg'"/>
@@ -52,56 +61,90 @@ function cardTemplate(task) {
   `;
 }
 
+function setGridMessage(message) {
+  grid.innerHTML = `<div class="empty">${message}</div>`;
+}
+
+function renderTasks() {
+  const includeCompleted = showCompleted.checked;
+  const visibleTasks = includeCompleted
+    ? tasks
+    : tasks.filter(task => task.status !== 'completed');
+
+  if (!visibleTasks.length) {
+    if (!tasks.length) {
+      setGridMessage('Geen taken gevonden');
+    } else {
+      setGridMessage('Geen open taken');
+    }
+    return;
+  }
+
+  grid.innerHTML = visibleTasks.map(cardTemplate).join('');
+  bindCardClicks();
+}
+
 async function loadTasks() {
-  grid.innerHTML = `<div class="empty">Laden…</div>`;
+  setGridMessage('Laden…');
   try {
-    const url = `/api/tasks?completed=true`;
+    const includeCompleted = showCompleted.checked;
+    const url = `/api/tasks?completed=${includeCompleted}`;
     const res = await fetch(url);
     if (res.status === 401) {
       const kioskHint = document.body.classList.contains('kiosk')
         ? 'Log in via de hoofdweergave buiten de kiosk-modus.'
         : 'Klik boven op <b>Inloggen met Google</b>.';
-      grid.innerHTML = `<div class="empty">Niet ingelogd. ${kioskHint}</div>`;
+      setGridMessage(`Niet ingelogd. ${kioskHint}`);
       return;
     }
     const data = await res.json();
-    const tasks = data.tasks || [];
-    if (!tasks.length) {
-      grid.innerHTML = `<div class="empty">Geen taken gevonden</div>`;
-      return;
-    }
-    grid.innerHTML = tasks.map(cardTemplate).join('');
-    bindCardClicks();
+    tasks = data.tasks || [];
+    renderTasks();
   } catch (e) {
     console.error(e);
-    grid.innerHTML = `<div class="empty">Fout bij laden van taken</div>`;
+    setGridMessage('Fout bij laden van taken');
   }
 }
 
 function bindCardClicks() {
   grid.querySelectorAll('.card').forEach(el => {
-    el.addEventListener('click', async () => {
-      const id = el.getAttribute('data-id');
-      const wasCompleted = el.classList.contains('completed');
-      // Optimistische toggle
-      el.classList.toggle('completed');
-      try {
-        const res = await fetch(`/api/tasks/${id}/toggle`, { method: 'POST' });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Update mislukt');
-        await loadTasks();
-      } catch (e) {
-        console.error(e);
-        alert('Bijwerken van de taak is mislukt. Controleer je login en probeer opnieuw.');
-        // revert als mislukt
-        if (el.classList.contains('completed') === wasCompleted) {
-          // niets te doen
-        } else {
-          el.classList.toggle('completed');
-        }
-      }
-    });
+    el.addEventListener('click', () => handleCardToggle(el));
   });
+}
+
+async function handleCardToggle(el) {
+  const id = el.getAttribute('data-id');
+  if (!id || pendingToggleIds.has(id)) return;
+
+  const originalTask = tasks.find(task => task.id === id);
+  if (!originalTask) return;
+  const original = { ...originalTask };
+
+  const optimisticStatus = original.status === 'completed' ? 'needsAction' : 'completed';
+
+  pendingToggleIds.add(id);
+  tasks = tasks.map(task =>
+    task.id === id ? { ...task, status: optimisticStatus } : task
+  );
+  renderTasks();
+
+  try {
+    const res = await fetch(`/api/tasks/${id}/toggle`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Update mislukt');
+    tasks = tasks.map(task =>
+      task.id === id ? { ...task, ...data.task } : task
+    );
+  } catch (e) {
+    console.error(e);
+    tasks = tasks.some(task => task.id === id)
+      ? tasks.map(task => (task.id === id ? { ...original } : task))
+      : [...tasks, original];
+    alert('Bijwerken van de taak is mislukt. Controleer je login en probeer opnieuw.');
+  } finally {
+    pendingToggleIds.delete(id);
+    renderTasks();
+  }
 }
 
 loadTasks();
