@@ -106,7 +106,12 @@ function sortTasksByDue(items) {
     const aDue = getDueTimeValue(a);
     const bDue = getDueTimeValue(b);
     if (aDue === bDue) {
-      return a.title.localeCompare(b.title);
+      const aTime = getManualTimeValue(a);
+      const bTime = getManualTimeValue(b);
+      if (aTime !== bTime) {
+        return aTime - bTime;
+      }
+      return a.title.localeCompare(b.title, 'nl', { sensitivity: 'base' });
     }
     return aDue - bDue;
   });
@@ -117,6 +122,19 @@ function getDueTimeValue(task) {
   const dueDate = new Date(task.due);
   const timestamp = dueDate.getTime();
   return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
+}
+
+function getManualTimeValue(task) {
+  const haystack = `${task.title || ''} ${task.notes || ''}`;
+  const match = haystack.match(/(\d{1,2})[:.](\d{2})/);
+  if (!match) return Number.MAX_SAFE_INTEGER;
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return Number.MAX_SAFE_INTEGER;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+  return hours * 60 + minutes;
 }
 
 function bindCardClicks() {
