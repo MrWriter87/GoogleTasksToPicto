@@ -1,28 +1,147 @@
-*{box-sizing:border-box}html,body{margin:0;padding:0;height:100%;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
-.app-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111;color:#fff}
-.app-header h1{margin:0;font-size:1.25rem}
-.actions{display:flex;gap:12px;align-items:center}
-.btn{border:0;background:#2e7d32;color:#fff;padding:10px 14px;border-radius:12px;font-size:1rem;cursor:pointer}
-.btn:active{transform:scale(.98)}
-.toggle{display:flex;gap:8px;align-items:center;color:#eee}
-.kiosk .app-header{display:none}
-
-/* ✅ Verticale lijst ipv grid */
-.grid{display:flex;flex-direction:column;gap:14px;padding:16px}
-.kiosk .grid{padding-top:24px}
-
-/* Cards vullen nu de breedte */
-.card{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;border-radius:16px;border:2px solid #ddd;background:#fff;padding:18px;min-height:120px;cursor:pointer;user-select:none;touch-action:manipulation;box-shadow:0 2px 12px rgba(0,0,0,.08);width:100%}
-.card.completed{background:#f4f4f4;border-color:#ccc}
-.card.completed .picto{filter:grayscale(1) brightness(.75);opacity:.75}
-.card.completed .title{text-decoration:line-through;color:#666}
-.card .picto{width:48px;height:48px}
-.card .title{font-size:1.25rem;text-align:center}
-
-/* optioneel: in brede schermen max breedte centreren */
-@media (min-width: 900px){
-  .grid{max-width: 720px;margin:0 auto;}
+* {
+  box-sizing: border-box;
 }
 
-.app-footer{padding:10px 16px;color:#444}
-.empty{color:#666;text-align:center;padding:48px}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+:root {
+  --picto-size: clamp(72px, 18vw, 140px);
+  --card-radius: 16px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #111;
+  color: #fff;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn {
+  border: 0;
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #eee;
+}
+
+.kiosk .app-header {
+  display: none;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--picto-size) * 0.3);
+  padding: 16px;
+}
+
+.kiosk .grid {
+  padding-top: 24px;
+}
+
+.card {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(6px, calc(var(--picto-size) * 0.12), 16px);
+  border-radius: var(--card-radius);
+  border: 2px solid #ddd;
+  background: #fff;
+  padding: calc(var(--picto-size) * 0.18) calc(var(--picto-size) * 0.2);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  width: fit-content;
+  min-width: calc(var(--picto-size) + 1.25rem);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.card:active {
+  transform: scale(0.97);
+}
+
+.card.pending {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.card.completed {
+  background: #f4f4f4;
+  border-color: #ccc;
+}
+
+.card.completed .picto {
+  filter: grayscale(1) brightness(0.75);
+  opacity: 0.75;
+}
+
+.card.completed .title {
+  text-decoration: line-through;
+  color: #666;
+}
+
+.card .picto {
+  width: var(--picto-size);
+  height: var(--picto-size);
+  object-fit: contain;
+}
+
+.card .title {
+  font-size: clamp(1rem, calc(var(--picto-size) * 0.22), 1.35rem);
+  text-align: center;
+  max-width: calc(var(--picto-size) * 1.4);
+}
+
+@media (min-width: 900px) {
+  .grid {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+}
+
+.app-footer {
+  padding: 10px 16px;
+  color: #444;
+}
+
+.empty {
+  color: #666;
+  text-align: center;
+  padding: 48px;
+  width: 100%;
+}
