@@ -43,7 +43,7 @@ function cardTemplate(task) {
 async function loadTasks() {
   grid.innerHTML = `<div class="empty">Laden…</div>`;
   try {
-    const url = `/api/tasks?completed=${showCompleted.checked ? 'true' : 'false'}`;
+    const url = `/api/tasks?completed=true`;
     const res = await fetch(url);
     if (res.status === 401) {
       grid.innerHTML = `<div class="empty">Niet ingelogd. Klik boven op <b>Inloggen met Google</b>.</div>`;
