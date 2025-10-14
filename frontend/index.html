@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dagtaken</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Dagtaken</h1>
+    <div class="actions">
+      <button id="loginBtn" class="btn">Inloggen met Google</button>
+      <label class="toggle">
+        <input type="checkbox" id="showCompleted" />
+        <span>Toon afgeronde</span>
+      </label>
+    </div>
+  </header>
+
+  <main id="grid" class="grid"></main>
+
+  <footer class="app-footer">
+    <small>Pictogrammen demo — voeg je eigen pictogrammen toe en gebruik <code>picto:&lt;sleutel&gt;</code> in Google Tasks.</small>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
