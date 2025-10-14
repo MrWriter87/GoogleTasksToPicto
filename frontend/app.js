@@ -1,12 +1,19 @@
 const grid = document.getElementById('grid');
 const loginBtn = document.getElementById('loginBtn');
-const showCompleted = document.getElementById('showCompleted');
 
 let tasks = [];
 const pendingToggleIds = new Set();
 
 const params = new URLSearchParams(window.location.search);
 const kioskParam = params.get('kiosk');
+const labelsParam = params.get('labels');
+
+function isTruthyParam(value) {
+  if (!value) return false;
+  const normalized = value.toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes';
+}
+
 const kioskMode =
   kioskParam === '1' ||
   kioskParam === 'true' ||
@@ -15,14 +22,13 @@ const kioskMode =
 
 if (kioskMode) {
   document.body.classList.add('kiosk');
+  if (!isTruthyParam(labelsParam)) {
+    document.body.classList.add('hide-titles');
+  }
 }
 
 loginBtn.addEventListener('click', () => {
   window.location.href = '/auth/start';
-});
-
-showCompleted.addEventListener('change', () => {
-  loadTasks();
 });
 
 function parsePictoKey(task) {
@@ -66,30 +72,19 @@ function setGridMessage(message) {
 }
 
 function renderTasks() {
-  const includeCompleted = showCompleted.checked;
-  const visibleTasks = includeCompleted
-    ? tasks
-    : tasks.filter(task => task.status !== 'completed');
-
-  if (!visibleTasks.length) {
-    if (!tasks.length) {
-      setGridMessage('Geen taken gevonden');
-    } else {
-      setGridMessage('Geen open taken');
-    }
+  if (!tasks.length) {
+    setGridMessage('Geen taken gevonden');
     return;
   }
 
-  grid.innerHTML = visibleTasks.map(cardTemplate).join('');
+  grid.innerHTML = tasks.map(cardTemplate).join('');
   bindCardClicks();
 }
 
 async function loadTasks() {
   setGridMessage('Laden…');
   try {
-    const includeCompleted = showCompleted.checked;
-    const url = `/api/tasks?completed=${includeCompleted}`;
-    const res = await fetch(url);
+    const res = await fetch('/api/tasks');
     if (res.status === 401) {
       const kioskHint = document.body.classList.contains('kiosk')
         ? 'Log in via de hoofdweergave buiten de kiosk-modus.'
@@ -98,12 +93,30 @@ async function loadTasks() {
       return;
     }
     const data = await res.json();
-    tasks = data.tasks || [];
+    tasks = sortTasksByDue(data.tasks || []);
     renderTasks();
   } catch (e) {
     console.error(e);
     setGridMessage('Fout bij laden van taken');
   }
+}
+
+function sortTasksByDue(items) {
+  return [...items].sort((a, b) => {
+    const aDue = getDueTimeValue(a);
+    const bDue = getDueTimeValue(b);
+    if (aDue === bDue) {
+      return a.title.localeCompare(b.title);
+    }
+    return aDue - bDue;
+  });
+}
+
+function getDueTimeValue(task) {
+  if (!task.due) return Number.MAX_SAFE_INTEGER;
+  const dueDate = new Date(task.due);
+  const timestamp = dueDate.getTime();
+  return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
 }
 
 function bindCardClicks() {

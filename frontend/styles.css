@@ -127,6 +127,14 @@ body {
   max-width: calc(var(--picto-size) * 1.4);
 }
 
+.kiosk.hide-titles .card {
+  gap: 0;
+}
+
+.kiosk.hide-titles .card .title {
+  display: none;
+}
+
 @media (min-width: 900px) {
   .grid {
     max-width: 960px;
