@@ -67,16 +67,23 @@ function bindCardClicks() {
   grid.querySelectorAll('.card').forEach(el => {
     el.addEventListener('click', async () => {
       const id = el.getAttribute('data-id');
+      const wasCompleted = el.classList.contains('completed');
       // Optimistische toggle
       el.classList.toggle('completed');
       try {
         const res = await fetch(`/api/tasks/${id}/toggle`, { method: 'POST' });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Update mislukt');
+        await loadTasks();
       } catch (e) {
         console.error(e);
+        alert('Bijwerken van de taak is mislukt. Controleer je login en probeer opnieuw.');
         // revert als mislukt
-        el.classList.toggle('completed');
+        if (el.classList.contains('completed') === wasCompleted) {
+          // niets te doen
+        } else {
+          el.classList.toggle('completed');
+        }
       }
     });
   });

@@ -105,13 +105,21 @@ export class GoogleAuthHelper {
     // First get current
     const current = await tasksClient.tasks.get({ tasklist: listId, task: taskId });
     const status = current.data.status === 'completed' ? 'needsAction' : 'completed';
-    const body = { status };
+    const body = {
+      id: current.data.id,
+      status
+    };
+    body.title = current.data.title || '';
+    if (typeof current.data.notes === 'string') body.notes = current.data.notes;
+    if (current.data.due) body.due = current.data.due;
+    if (current.data.parent) body.parent = current.data.parent;
+    if (current.data.links) body.links = current.data.links;
     if (status === 'completed') {
       body.completed = new Date().toISOString();
     } else {
       body.completed = null;
     }
-    const updated = await tasksClient.tasks.patch({
+    const updated = await tasksClient.tasks.update({
       tasklist: listId,
       task: taskId,
       requestBody: body
