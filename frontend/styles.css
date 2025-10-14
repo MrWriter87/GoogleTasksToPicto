@@ -5,17 +5,19 @@
 .btn{border:0;background:#2e7d32;color:#fff;padding:10px 14px;border-radius:12px;font-size:1rem;cursor:pointer}
 .btn:active{transform:scale(.98)}
 .toggle{display:flex;gap:8px;align-items:center;color:#eee}
+.kiosk .app-header{display:none}
 
 /* ✅ Verticale lijst ipv grid */
 .grid{display:flex;flex-direction:column;gap:14px;padding:16px}
+.kiosk .grid{padding-top:24px}
 
 /* Cards vullen nu de breedte */
-.card{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;border-radius:16px;border:2px solid #ddd;background:#fff;padding:18px;min-height:140px;cursor:pointer;user-select:none;touch-action:manipulation;box-shadow:0 2px 12px rgba(0,0,0,.08);width:100%}
+.card{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;border-radius:14px;border:2px solid #ddd;background:#fff;padding:12px 14px;min-height:96px;cursor:pointer;user-select:none;touch-action:manipulation;box-shadow:0 2px 12px rgba(0,0,0,.08);width:100%}
 .card.completed{background:#f4f4f4;border-color:#ccc}
 .card.completed .picto{filter:grayscale(1) brightness(.75);opacity:.75}
 .card.completed .title{text-decoration:line-through;color:#666}
-.card .picto{width:96px;height:96px}
-.card .title{font-size:1.25rem;text-align:center}
+.card .picto{width:48px;height:48px}
+.card .title{font-size:1.1rem;text-align:center}
 
 /* optioneel: in brede schermen max breedte centreren */
 @media (min-width: 900px){
