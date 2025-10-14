@@ -60,8 +60,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 // Haal taken (actief + eventueel completed) op uit een lijst
 app.get('/api/tasks', async (req, res) => {
   try {
-    const showCompleted = req.query.completed === 'true';
-    const tasks = await google.listTasks({ includeCompleted: showCompleted });
+    const tasks = await google.listTasks({ includeCompleted: true });
     res.json({ tasks });
   } catch (err) {
     console.error(err);
