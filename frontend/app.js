@@ -53,7 +53,7 @@ function parsePictoKey(task) {
 
 function cardTemplate(task) {
   const key = parsePictoKey(task);
-  const imgSrc = `/icons/${key}.svg`
+  const imgSrc = `/icons/${key}.png`
   const cls = [
     'card',
     task.status === 'completed' ? 'completed' : '',
@@ -63,7 +63,7 @@ function cardTemplate(task) {
     .join(' ');
   return `
     <div class="${cls}" data-id="${task.id}">
-      <img class="picto" src="${imgSrc}" alt="${key}" onerror="this.src='/icons/generiek.svg'"/>
+      <img class="picto" src="${imgSrc}" alt="${key}" onerror="this.src='/icons/generiek.png'"/>
       <div class="title">${task.title || '(zonder titel)'}</div>
     </div>
   `;
