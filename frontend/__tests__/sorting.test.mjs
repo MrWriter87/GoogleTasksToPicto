@@ -7,7 +7,7 @@ import {
   __test__
 } from '../sorting.js';
 
-const { MAX_ORDER_VALUE, hasExplicitDueTime } = __test__;
+const { MAX_ORDER_VALUE, hasExplicitDueTime, getManualOrderValue } = __test__;
 
 describe('getDueDateOrderValue', () => {
   it('places tasks without due date at the end', () => {
@@ -52,7 +52,27 @@ describe('hasExplicitDueTime', () => {
   });
 });
 
+describe('getManualOrderValue', () => {
+  it('extracts leading numbers from the title', () => {
+    assert.equal(getManualOrderValue({ title: '01 Ontbijt' }), 1);
+    assert.equal(getManualOrderValue({ title: '007 Geheim' }), 7);
+  });
+
+  it('ignores titles without a leading number', () => {
+    assert.equal(getManualOrderValue({ title: 'Ontbijt 01' }), MAX_ORDER_VALUE);
+  });
+});
+
 describe('sortTasksByDue', () => {
+  it('prefers leading manual numbers over due dates', () => {
+    const tasks = [
+      { id: 'a', title: '02 Ontbijt', due: '2024-06-01T00:00:00.000Z' },
+      { id: 'b', title: '01 Opstaan', due: '2024-06-02T00:00:00.000Z' }
+    ];
+    const sorted = sortTasksByDue(tasks).map(t => t.id);
+    assert.deepEqual(sorted, ['b', 'a']);
+  });
+
   it('orders by due date first', () => {
     const tasks = [
       { id: 'a', title: 'A', due: '2024-06-03T00:00:00.000Z' },
