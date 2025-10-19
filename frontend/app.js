@@ -63,7 +63,9 @@ function cardTemplate(task) {
     .join(' ');
   return `
     <div class="${cls}" data-id="${task.id}">
-      <img class="picto" src="${imgSrc}" alt="${key}" onerror="this.src='/icons/generiek.png'"/>
+      <div class="picto-wrapper">
+        <img class="picto" src="${imgSrc}" alt="${key}" onerror="this.src='/icons/generiek.png'"/>
+      </div>
       <div class="title">${task.title || '(zonder titel)'}</div>
     </div>
   `;
