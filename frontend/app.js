@@ -40,6 +40,7 @@ function parsePictoKey(task) {
   // eenvoudige fallback op keywords/emoji
   if (hay.includes('tand') || hay.includes('🦷')) return 'tandenpoetsen';
   if (hay.includes('aankleed') || hay.includes('👕')) return 'aankleden';
+  if (hay.includes('Mond') || hay.includes('👕')) return 'mondpoetsen';
   if (hay.includes('ontbijt') || hay.includes('🍽') || hay.includes('🍳')) return 'ontbijt';
   if (hay.includes('jas') || hay.includes('🧥')) return 'jas';
   if (hay.includes('school') || hay.includes('🎒')) return 'school';
