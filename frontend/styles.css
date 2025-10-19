@@ -80,7 +80,7 @@ body {
   gap: clamp(6px, calc(var(--picto-size) * 0.12), 16px);
   border-radius: var(--card-radius);
   border: 2px solid #ddd;
-  background: #fff;
+  background: transparent;
   padding: calc(var(--picto-size) * 0.18) calc(var(--picto-size) * 0.2);
   cursor: pointer;
   user-select: none;
