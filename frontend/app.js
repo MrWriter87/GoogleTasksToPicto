@@ -10,6 +10,23 @@ const params = new URLSearchParams(window.location.search);
 const kioskParam = params.get('kiosk');
 const labelsParam = params.get('labels');
 
+function toDateKey(value) {
+  if (!value || typeof value !== 'string') return null;
+  const match = value.match(/^\d{4}-\d{2}-\d{2}/);
+  if (match) return match[0];
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+function getTodayKey() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, '0');
+  const day = `${today.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function isTruthyParam(value) {
   if (!value) return false;
   const normalized = value.toLowerCase();
@@ -84,7 +101,7 @@ function setGridMessage(message) {
 
 function renderTasks() {
   if (!tasks.length) {
-    setGridMessage('Geen taken gevonden');
+    setGridMessage('Geen taken voor vandaag');
     return;
   }
 
@@ -104,7 +121,12 @@ async function loadTasks() {
       return;
     }
     const data = await res.json();
-    tasks = sortTasksByDue(data.tasks || []);
+    const allTasks = sortTasksByDue(data.tasks || []);
+    const todayKey = getTodayKey();
+    tasks = allTasks.filter(task => {
+      const dueKey = toDateKey(task.due);
+      return dueKey === todayKey;
+    });
     renderTasks();
   } catch (e) {
     console.error(e);

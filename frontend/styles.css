@@ -64,7 +64,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: calc(var(--picto-size) * 0.3);
+  gap: clamp(8px, calc(var(--picto-size) * 0.15), 18px);
   padding: 16px;
 }
 
@@ -80,14 +80,14 @@ body {
   gap: clamp(6px, calc(var(--picto-size) * 0.12), 16px);
   border-radius: var(--card-radius);
   background: transparent;
-  padding: calc(var(--picto-size) * 0.18) calc(var(--picto-size) * 0.2);
+  padding: 0;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   width: fit-content;
-  min-width: calc(var(--picto-size) + 1.25rem);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  min-width: var(--picto-size);
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .card .picto-wrapper {
@@ -109,7 +109,7 @@ body {
 }
 
 .card.completed {
-  background: #f4f4f4;
+  background: transparent;
 }
 
 .card.completed .picto {
