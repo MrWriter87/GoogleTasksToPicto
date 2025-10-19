@@ -1,6 +1,7 @@
 const MAX_ORDER_VALUE = Number.MAX_SAFE_INTEGER;
 const MIDNIGHT_REGEX = /T00:00:00(?:\.0+)?(?:Z|[+-]\d{2}:?\d{2})?$/i;
 const DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})/;
+const LEADING_NUMBER_REGEX = /^(\d{1,3})\b/;
 
 function hasExplicitDueTime(due) {
   if (!due) return false;
@@ -16,6 +17,16 @@ function extractDueTimeMinutes(due) {
   const minutes = Number.parseInt(match[2], 10);
   if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
   return hours * 60 + minutes;
+}
+
+export function getManualOrderValue(task) {
+  const title = (task?.title || '').trim();
+  if (!title) return MAX_ORDER_VALUE;
+  const match = title.match(LEADING_NUMBER_REGEX);
+  if (!match) return MAX_ORDER_VALUE;
+  const value = Number.parseInt(match[1], 10);
+  if (Number.isNaN(value)) return MAX_ORDER_VALUE;
+  return value;
 }
 
 export function getManualTimeValue(task) {
@@ -55,6 +66,10 @@ export function getDueTimeOrderValue(task) {
 
 export function sortTasksByDue(items) {
   return [...items].sort((a, b) => {
+    const aManualOrder = getManualOrderValue(a);
+    const bManualOrder = getManualOrderValue(b);
+    if (aManualOrder !== bManualOrder) return aManualOrder - bManualOrder;
+
     const aDate = getDueDateOrderValue(a);
     const bDate = getDueDateOrderValue(b);
     if (aDate !== bDate) return aDate - bDate;
@@ -72,5 +87,6 @@ export function sortTasksByDue(items) {
 export const __test__ = {
   MAX_ORDER_VALUE,
   hasExplicitDueTime,
-  extractDueTimeMinutes
+  extractDueTimeMinutes,
+  getManualOrderValue
 };
