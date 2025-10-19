@@ -11,7 +11,7 @@ body {
 }
 
 :root {
-  --picto-size: clamp(72px, 18vw, 140px);
+  --picto-size: clamp(84px, 20vw, 160px);
   --card-radius: 16px;
 }
 
@@ -79,7 +79,6 @@ body {
   align-items: center;
   gap: clamp(6px, calc(var(--picto-size) * 0.12), 16px);
   border-radius: var(--card-radius);
-  border: 2px solid #ddd;
   background: transparent;
   padding: calc(var(--picto-size) * 0.18) calc(var(--picto-size) * 0.2);
   cursor: pointer;
@@ -111,7 +110,6 @@ body {
 
 .card.completed {
   background: #f4f4f4;
-  border-color: #ccc;
 }
 
 .card.completed .picto {
