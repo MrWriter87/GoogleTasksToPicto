@@ -15,10 +15,31 @@ const app = express();
 app.use(express.json());
 
 const ORIGIN_ALLOWED = process.env.ORIGIN_ALLOWED || 'http://localhost:5173';
+const API_TOKEN = process.env.TASKS_API_TOKEN;
 app.use(cors({
   origin: ORIGIN_ALLOWED,
   credentials: true
 }));
+
+function requireApiToken(req, res, next) {
+  if (!API_TOKEN) {
+    return res.status(500).json({ error: 'Server misconfigured: TASKS_API_TOKEN missing' });
+  }
+
+  const authHeader = req.headers['authorization'];
+  const providedToken =
+    req.query.token ||
+    req.headers['x-api-token'] ||
+    req.headers['x-token'] ||
+    req.headers['token'] ||
+    (authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined);
+
+  if (!providedToken || providedToken !== API_TOKEN) {
+    return res.status(403).json({ error: 'Forbidden: missing or invalid token' });
+  }
+
+  next();
+}
 
 // ✅ Frontend staat in dezelfde map als server.js (Azure fix)
 const frontendDir = path.join(__dirname, 'frontend');
@@ -57,8 +78,13 @@ app.get('/auth/callback', async (req, res) => {
 // Ping
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+// Expose runtime config to the frontend
+app.get('/api/config', (req, res) => {
+  res.json({ token: API_TOKEN });
+});
+
 // Haal taken (actief + eventueel completed) op uit een lijst
-app.get('/api/tasks', async (req, res) => {
+app.get('/api/tasks', requireApiToken, async (req, res) => {
   try {
     const tasks = await google.listTasks({ includeCompleted: true });
     res.json({ tasks });
@@ -72,7 +98,7 @@ app.get('/api/tasks', async (req, res) => {
 });
 
 // Toggle task status (completed <-> needsAction)
-app.post('/api/tasks/:id/toggle', async (req, res) => {
+app.post('/api/tasks/:id/toggle', requireApiToken, async (req, res) => {
   const { id } = req.params;
   try {
     const updated = await google.toggleTask(id);
