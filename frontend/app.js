@@ -5,6 +5,7 @@ const loginBtn = document.getElementById('loginBtn');
 
 let tasks = [];
 const pendingToggleIds = new Set();
+let apiTokenPromise = null;
 
 const params = new URLSearchParams(window.location.search);
 const kioskParam = params.get('kiosk');
@@ -109,15 +110,36 @@ function renderTasks() {
   bindCardClicks();
 }
 
+async function getApiToken() {
+  if (!apiTokenPromise) {
+    apiTokenPromise = fetch('/api/config')
+      .then(res => {
+        if (!res.ok) throw new Error('Kon configuratie niet laden');
+        return res.json();
+      })
+      .then(data => data.token);
+  }
+  return apiTokenPromise;
+}
+
 async function loadTasks() {
   setGridMessage('Laden…');
   try {
-    const res = await fetch('/api/tasks');
+    const token = await getApiToken();
+    const res = await fetch('/api/tasks', {
+      headers: {
+        'x-api-token': token
+      }
+    });
     if (res.status === 401) {
       const kioskHint = document.body.classList.contains('kiosk')
         ? 'Log in via de hoofdweergave buiten de kiosk-modus.'
         : 'Klik boven op <b>Inloggen met Google</b>.';
       setGridMessage(`Niet ingelogd. ${kioskHint}`);
+      return;
+    }
+    if (res.status === 403) {
+      setGridMessage('Geen toegang tot taken (token ontbreekt of is ongeldig).');
       return;
     }
     const data = await res.json();
@@ -157,7 +179,13 @@ async function handleCardToggle(el) {
   renderTasks();
 
   try {
-    const res = await fetch(`/api/tasks/${id}/toggle`, { method: 'POST' });
+    const token = await getApiToken();
+    const res = await fetch(`/api/tasks/${id}/toggle`, {
+      method: 'POST',
+      headers: {
+        'x-api-token': token
+      }
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Update mislukt');
     tasks = tasks.map(task =>
