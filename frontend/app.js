@@ -10,7 +10,6 @@ let apiTokenPromise = null;
 const params = new URLSearchParams(window.location.search);
 const kioskParam = params.get('kiosk');
 const labelsParam = params.get('labels');
-const accessCode = params.get('code');
 
 function toDateKey(value) {
   if (!value || typeof value !== 'string') return null;
@@ -113,18 +112,9 @@ function renderTasks() {
 
 async function getApiToken() {
   if (!apiTokenPromise) {
-    if (!accessCode) {
-      apiTokenPromise = Promise.reject(new Error('Access code missing'));
-      return apiTokenPromise;
-    }
-    apiTokenPromise = fetch(`/api/config?code=${encodeURIComponent(accessCode)}`)
+    apiTokenPromise = fetch('/api/config')
       .then(res => {
-        if (!res.ok) {
-          if (res.status === 403) {
-            throw new Error('Invalid access code');
-          }
-          throw new Error('Kon configuratie niet laden');
-        }
+        if (!res.ok) throw new Error('Kon configuratie niet laden');
         return res.json();
       })
       .then(data => data.token);
@@ -134,15 +124,9 @@ async function getApiToken() {
 
 async function loadTasks() {
   setGridMessage('Laden…');
-  
-  if (!accessCode) {
-    setGridMessage('Geen toegang. De URL moet een geldige toegangscode bevatten (?code=...).');
-    return;
-  }
-  
   try {
     const token = await getApiToken();
-    const res = await fetch(`/api/tasks?code=${encodeURIComponent(accessCode)}`, {
+    const res = await fetch('/api/tasks', {
       headers: {
         'x-api-token': token
       }
@@ -155,7 +139,7 @@ async function loadTasks() {
       return;
     }
     if (res.status === 403) {
-      setGridMessage('Geen toegang. Controleer of de toegangscode in de URL correct is.');
+      setGridMessage('Geen toegang tot taken (token ontbreekt of is ongeldig).');
       return;
     }
     const data = await res.json();
@@ -168,11 +152,7 @@ async function loadTasks() {
     renderTasks();
   } catch (e) {
     console.error(e);
-    if (e.message === 'Access code missing' || e.message === 'Invalid access code') {
-      setGridMessage('Geen toegang. De URL moet een geldige toegangscode bevatten (?code=...).');
-    } else {
-      setGridMessage('Fout bij laden van taken');
-    }
+    setGridMessage('Fout bij laden van taken');
   }
 }
 
@@ -200,7 +180,7 @@ async function handleCardToggle(el) {
 
   try {
     const token = await getApiToken();
-    const res = await fetch(`/api/tasks/${id}/toggle?code=${encodeURIComponent(accessCode)}`, {
+    const res = await fetch(`/api/tasks/${id}/toggle`, {
       method: 'POST',
       headers: {
         'x-api-token': token
