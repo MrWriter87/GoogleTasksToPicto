@@ -38,6 +38,7 @@ Je kunt de webapp als **Website/iFrame** in DAKboard plaatsen.
 2. **.env invullen**:
    - Kopieer `backend/.env.example` naar `backend/.env` en vul waarden in.
    - Laat `PORT=5173` staan voor lokaal.
+   - Stel een **unieke toegangscode** in via `ACCESS_CODE` (bijv. `ACCESS_CODE=mijn-geheime-code-2024`).
 
 3. **Installeren & starten**:
    ```bash
@@ -45,18 +46,21 @@ Je kunt de webapp als **Website/iFrame** in DAKboard plaatsen.
    npm install
    npm run dev
    ```
-   Open vervolgens: http://localhost:5173
+   Open vervolgens: http://localhost:5173?code=mijn-geheime-code-2024 (gebruik de code die je in `.env` hebt ingesteld)
 
 4. **Inloggen**:
    - Klik op **Inloggen met Google** en rond de autorisatie af.
    - Je taken verschijnen als kaarten. Tik op een kaart om af te vinken / terug te zetten.
 
+> ⚠️ **Belangrijk**: De app vereist nu een **toegangscode** in de URL (`?code=...`). Zonder geldige code worden de taken niet weergegeven. Dit voorkomt ongeautoriseerde toegang tot je taken.
+
 ---
 
 ## DAKboard iFrame
 - Host deze app (bijv. op **Azure Web Apps** met HTTPS).
-- Voeg in DAKboard een **Website/iFrame**-blok toe met jouw publieke URL (bijv. `https://jouwdomein.nl`).
+- Voeg in DAKboard een **Website/iFrame**-blok toe met jouw publieke URL **inclusief toegangscode** (bijv. `https://jouwdomein.nl?code=mijn-geheime-code-2024`).
 - Zorg dat je **eenmalig** inlogt met Google via diezelfde URL op de tablet.
+- **Belangrijk**: Houd je toegangscode geheim. Deel de volledige URL (met code) alleen met mensen die toegang mogen hebben tot je taken.
 
 ### Kioskmodus activeren
 - De app herkent automatisch wanneer ze in een iFrame draait (bijvoorbeeld in DAKboard) en schakelt dan de **kioskmodus** in.
@@ -113,8 +117,10 @@ google-tasks-picto-poc/
 ---
 
 ## Veiligheid & Privacy
+- **Toegangscode**: De app vereist een unieke toegangscode in de URL (`?code=...`). Stel deze in via de `ACCESS_CODE` environment variable. Zonder geldige code kunnen taken niet worden bekeken of gewijzigd.
 - Deze PoC bewaart tokens op schijf in `backend/tokens/`. Voor productie: gebruik een beveiligde opslag (bijv. Azure Key Vault) en zet de server achter HTTPS.
 - Beperk toegang tot je host (firewall/IP-allowlist) als je iFrame publiek is.
+- **Belangrijk**: Deel je toegangscode niet openbaar. Iedereen met de volledige URL (inclusief code) heeft toegang tot je taken.
 
 ---
 
@@ -122,5 +128,6 @@ google-tasks-picto-poc/
 - **400 redirect_uri_mismatch**: De redirect-URL in Google Cloud moet exact matchen met je host, bijv. `https://jouwdomein.nl/auth/callback`.
 - **CORS**: De server staat CORS toe vanaf je front-end host (`ORIGIN_ALLOWED`). Pas dit aan in `.env`.
 - **Geen taken zichtbaar**: Zorg dat er taken in je **eerste lijst** staan of kies een andere `TASKS_LIST_INDEX` in `.env`.
+- **"Geen toegang" melding**: Controleer of je de juiste toegangscode in de URL hebt staan (`?code=...`). De code moet exact overeenkomen met de `ACCESS_CODE` in je `.env` file.
 
 Succes!
