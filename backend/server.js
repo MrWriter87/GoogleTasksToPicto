@@ -16,10 +16,27 @@ app.use(express.json());
 
 const ORIGIN_ALLOWED = process.env.ORIGIN_ALLOWED || 'http://localhost:5173';
 const API_TOKEN = process.env.TASKS_API_TOKEN;
+const ACCESS_CODE = process.env.ACCESS_CODE;
 app.use(cors({
   origin: ORIGIN_ALLOWED,
   credentials: true
 }));
+
+function requireAccessCode(req, res, next) {
+  if (!ACCESS_CODE) {
+    return res.status(500).json({ error: 'Server misconfigured: ACCESS_CODE missing' });
+  }
+
+  const providedCode = 
+    req.query.code ||
+    req.headers['x-access-code'];
+
+  if (!providedCode || providedCode !== ACCESS_CODE) {
+    return res.status(403).json({ error: 'Forbidden: missing or invalid access code' });
+  }
+
+  next();
+}
 
 function requireApiToken(req, res, next) {
   if (!API_TOKEN) {
@@ -78,13 +95,13 @@ app.get('/auth/callback', async (req, res) => {
 // Ping
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// Expose runtime config to the frontend
-app.get('/api/config', (req, res) => {
+// Expose runtime config to the frontend (protected by access code)
+app.get('/api/config', requireAccessCode, (req, res) => {
   res.json({ token: API_TOKEN });
 });
 
 // Haal taken (actief + eventueel completed) op uit een lijst
-app.get('/api/tasks', requireApiToken, async (req, res) => {
+app.get('/api/tasks', requireAccessCode, requireApiToken, async (req, res) => {
   try {
     const tasks = await google.listTasks({ includeCompleted: true });
     res.json({ tasks });
@@ -98,7 +115,7 @@ app.get('/api/tasks', requireApiToken, async (req, res) => {
 });
 
 // Toggle task status (completed <-> needsAction)
-app.post('/api/tasks/:id/toggle', requireApiToken, async (req, res) => {
+app.post('/api/tasks/:id/toggle', requireAccessCode, requireApiToken, async (req, res) => {
   const { id } = req.params;
   try {
     const updated = await google.toggleTask(id);
