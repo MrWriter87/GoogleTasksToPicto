@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { GoogleAuthHelper } from './tasks.js';
 
@@ -31,7 +32,24 @@ function requireAccessCode(req, res, next) {
     req.query.code ||
     req.headers['x-access-code'];
 
-  if (!providedCode || providedCode !== ACCESS_CODE) {
+  if (!providedCode) {
+    return res.status(403).json({ error: 'Forbidden: missing or invalid access code' });
+  }
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    const providedBuffer = Buffer.from(providedCode);
+    const expectedBuffer = Buffer.from(ACCESS_CODE);
+    
+    // If lengths don't match, comparison will fail but still take constant time
+    if (providedBuffer.length !== expectedBuffer.length) {
+      return res.status(403).json({ error: 'Forbidden: missing or invalid access code' });
+    }
+    
+    if (!crypto.timingSafeEqual(providedBuffer, expectedBuffer)) {
+      return res.status(403).json({ error: 'Forbidden: missing or invalid access code' });
+    }
+  } catch (err) {
     return res.status(403).json({ error: 'Forbidden: missing or invalid access code' });
   }
 
